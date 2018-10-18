@@ -10,6 +10,17 @@ class FlappyAgent:
         self.episode = []
         return
     
+    def map_state(self, state):
+    """ We are not using the entire game state as our state as we 
+        just want the following values but discretized to at max 15 values
+        player_y
+        next_pipe_top_y
+        next_pipe_dist_to_player
+        player_vel
+    """
+    return (int(state['player_y'] / 15), int(state['next_pipe_top_y'] / 15), int(state['next_pipe_dist_to_player'] / 15), state['player_vel'])
+
+    
     def reward_values(self):
         """ returns the reward values used for training
         
