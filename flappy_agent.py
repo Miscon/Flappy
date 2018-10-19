@@ -2,6 +2,8 @@ from ple.games.flappybird import FlappyBird
 from ple import PLE
 import random
 import numpy as np
+import pickle
+
 
 class FlappyAgent:
     def __init__(self):
@@ -197,23 +199,24 @@ def run_game(nb_episodes, agent):
                 nb_episodes -= 1
 
                 rewards.append(score)
-                if nb_episodes % 100 == 0:
+                if nb_episodes % 1000 == 0:
                     print("episodes left: {}".format(nb_episodes))
                     print("score: {}".format(sum(rewards) / float(len(rewards))))
                     print("frames: {}".format(count))
                     print("==========================")
                     rewards = []
+
+                    with open("on_policy_monte_carlo.pkl", "wb") as f:
+                        pickle.dump((agent), f, pickle.HIGHEST_PROTOCOL)
                 score = 0
         
 
 
-    import pickle
-    with open("on_policy_monte_carlo.pkl", "wb") as f:
-        pickle.dump((agent), f, pickle.HIGHEST_PROTOCOL)
+
 
     if testing:
         raw_input("Press Enter to continue...")
-        nb_episodes = 10
+        nb_episodes = 100
 
         reward_values = {"positive": 1.0, "negative": 0.0, "tick": 0.0, "loss": 0.0, "win": 0.0}
         
@@ -242,11 +245,10 @@ def run_game(nb_episodes, agent):
 
 agent = FlappyAgent()
 
-import pickle
 with open("on_policy_monte_carlo.pkl", "rb") as f:
     agent = pickle.load(f)
     print(agent.episode_count)
 
 
-run_game(1000, agent)
+run_game(0, agent)
 
