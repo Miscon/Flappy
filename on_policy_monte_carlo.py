@@ -4,6 +4,7 @@ import random
 import numpy as np
 import pickle
 import scipy.stats as st
+import pandas as pd
 
 
 
@@ -225,6 +226,7 @@ def score_agent():
     agent = FlappyAgent()
     episode_snapshot = 100
     avg_scores = []
+    df = pd.DataFrame()
     while True:
         try:
             with open("on_policy_monte_carlo/{}.pkl".format(episode_snapshot), "rb") as f:
@@ -261,12 +263,13 @@ def score_agent():
         
         avg_score = sum(scores) / float(len(scores))
         confidence_interval = st.t.interval(0.95, len(scores)-1, loc=np.mean(scores), scale=st.sem(scores))  
-        avg_scores.append((agent, avg_score, confidence_interval))
-        print(avg_scores[-1])
+        df = df.append({"episode_count":agent.episode_count, "frame_count":agent.frame_count,
+                        "avg_score":avg_score, "interval_lower":confidence_interval[0],
+                        "interval_upper":confidence_interval[1]}, ignore_index=True)
+        print(avg_score)
         episode_snapshot += 100
 
-    with open("on_policy_monte_carlo/scores.pkl", "wb") as f:
-        pickle.dump(avg_scores, f, pickle.HIGHEST_PROTOCOL)
+    df.to_csv("on_policy_monte_carlo/scores.csv", encoding='utf-8', index=False)
 
 
 def play(nb_episodes):
@@ -304,7 +307,7 @@ def play(nb_episodes):
             score = 0
 
 
-train_agent()
+# train_agent()
 
 score_agent()
 
