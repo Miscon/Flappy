@@ -1,8 +1,11 @@
+#!/usr/bin/python
+
 import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import sys
 
 
 class FlappyAgent:
@@ -34,6 +37,7 @@ class FlappyAgent:
                 return 1
 
 def plot_actions(data):
+    
     df = data.pivot_table(index="y_difference", columns="next_pipe_dist_to_player", values="action")
 
     fig = plt.figure()
@@ -62,7 +66,9 @@ def plot_expected_return(data):
     plt.show()
 
 def plot_states_seen(data):
-    df = data.pivot_table(index="y_difference", columns="next_pipe_dist_to_player", values="count_seen")
+    # TODO the pivot uses averages of seen, need to sum
+    df = data.groupby(["y_difference", "next_pipe_dist_to_player"]).agg({"count_seen": np.sum})
+    df = df.pivot_table(index="y_difference", columns="next_pipe_dist_to_player", values="count_seen")
 
     fig = plt.figure()
     ax = fig.gca()
@@ -76,9 +82,10 @@ def plot_states_seen(data):
     plt.show()
 
 
+agent_type = sys.argv[1]
 agent = FlappyAgent()
 
-with open("q_learning/newest.pkl", "rb") as f:
+with open("{}/newest.pkl".format(agent_type), "rb") as f:
     agent = pickle.load(f)
     print("Loading snapshot {}".format(agent.episode_count))
 
@@ -91,7 +98,7 @@ for sa, G in agent.Q.items():
                     "next_pipe_dist_to_player":state[2],
                     "next_pipe_top_y":state[3],
                     "y_difference":state[0] - state[3],
-                    "action":agent.get_state_argmax_a(state),#agent.greedy_policy[state],
+                    "action":agent.get_state_argmax_a(state),
                     "return":G,
                     "count_seen":agent.s_a_counts[sa]}, ignore_index=True)
 

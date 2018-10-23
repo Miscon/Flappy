@@ -10,13 +10,13 @@ import pandas as pd
 
 class FlappyAgent:
     def __init__(self):
-        self.Q = {} # see picture or rl2, averaging learning rule
-        self.greedy_policy = {}
-        self.s_a_counts = {} # for graphs
+        self.Q = {}
         self.episode = []
-  
-        self.episode_count = 0 # for graphs
-        self.frame_count = 0 # for graphs
+        
+        #for graphs
+        self.s_a_counts = {}
+        self.episode_count = 0
+        self.frame_count = 0
         return
     
     def map_state(self, state):
@@ -84,16 +84,16 @@ class FlappyAgent:
         
         # Get state values
         Qs1a = self.Q.get((s1, a))
-        Qs2a = self.get_state_max_a(s2) 
+        max_Qs2a = self.get_state_max_a(s2) 
 
         # Initialize to 0 if needed
         if Qs1a == None:
             Qs1a = 0
-        if Qs2a == None:
-            Qs2a = 0
+        if max_Qs2a == None:
+            max_Qs2a = 0
 
         # Calculate return
-        G = r + gamma * Qs2a
+        G = r + gamma * max_Qs2a
 
         # Update Q table
         self.Q[(s1, a)] = Qs1a + lr * (G - Qs1a) # update rule
@@ -194,7 +194,7 @@ def train_agent():
     score = 0
     count = 0
     rewards = []
-    nb_episodes = 10000
+    nb_episodes = 10000 - agent.episode_count
     while nb_episodes > 0 and agent.frame_count <= 2000000:
         # pick an action
         state1 = env.game.getGameState()
@@ -206,78 +206,74 @@ def train_agent():
 
         state2 = env.game.getGameState()
 
-        agent.observe(state1, action, reward, state2, env.game_over())
+        end = env.game_over() or score >= 100 # Stop after reaching 100 pipes
+        agent.observe(state1, action, reward, state2, end)
 
         score += reward
-        count += 1
 
         # reset the environment if the game is over
-        if env.game_over():
+        if end:
             env.reset_game()
             nb_episodes -= 1
 
             rewards.append(score)
             if nb_episodes % 100 == 0:
-                print("==========================")
                 print("episodes done: {}".format(agent.episode_count))
                 print("episodes left: {}".format(nb_episodes))
-                print("frames: {}".format(count))
+                print("frames: {}".format(agent.frame_count))
+
+                score_agent(agent)
 
                 with open("q_learning/{}.pkl".format(agent.episode_count), "wb") as f:
                     pickle.dump((agent), f, pickle.HIGHEST_PROTOCOL)
                 with open("q_learning/newest.pkl", "wb") as f:
                     pickle.dump((agent), f, pickle.HIGHEST_PROTOCOL)
+                
+                print("==========================")
+
             score = 0
          
 
-def score_agent():
+def score_agent(agent):
 
-    agent = FlappyAgent()
-    episode_snapshot = 100
-    avg_scores = []
+    reward_values = {"positive": 1.0, "negative": 0.0, "tick": 0.0, "loss": 0.0, "win": 0.0}
+
+    env = PLE(FlappyBird(), fps=30, display_screen=False, force_fps=True, rng=None, reward_values=reward_values)
+    env.init()
+
+    score = 0
+    scores = []
+    nb_episodes = 50
+    while nb_episodes > 0:
+        # pick an action
+        state = env.game.getGameState()
+        action = agent.policy(state)
+
+        # step the environment
+        reward = env.act(env.getActionSet()[action])
+        # print("reward=%d" % reward)
+
+        score += reward
+
+        # reset the environment if the game is over
+        if env.game_over() or score >= 100:
+            scores.append(score)
+            env.reset_game()
+            nb_episodes -= 1
+            score = 0
+    
+    avg_score = sum(scores) / float(len(scores))
+    confidence_interval = st.t.interval(0.95, len(scores)-1, loc=np.mean(scores), scale=st.sem(scores))  
+    
     df = pd.DataFrame()
-    while True:
-        try:
-            with open("q_learning/{}.pkl".format(episode_snapshot), "rb") as f:
-                agent = pickle.load(f)
-                print("Running snapshot {}".format(agent.episode_count))
-        except:
-            break
+    try:
+        df = pd.read_csv("q_learning/scores.csv")
+    except:
+        print("Starting new scoring file")
 
-        reward_values = agent.reward_values()
-
-        env = PLE(FlappyBird(), fps=30, display_screen=False, force_fps=True, rng=None, reward_values = reward_values)
-        env.init()
-
-        score = 0
-        scores = []
-        nb_episodes = 50
-        while nb_episodes > 0:
-            # pick an action
-            state = env.game.getGameState()
-            action = agent.policy(state)
-
-            # step the environment
-            reward = env.act(env.getActionSet()[action])
-            # print("reward=%d" % reward)
-
-            score += reward
-
-            # reset the environment if the game is over
-            if env.game_over():
-                scores.append(score)
-                env.reset_game()
-                nb_episodes -= 1
-                score = 0
-        
-        avg_score = sum(scores) / float(len(scores))
-        confidence_interval = st.t.interval(0.95, len(scores)-1, loc=np.mean(scores), scale=st.sem(scores))  
-        df = df.append({"episode_count":agent.episode_count, "frame_count":agent.frame_count,
-                        "avg_score":avg_score, "interval_lower":confidence_interval[0],
-                        "interval_upper":confidence_interval[1]}, ignore_index=True)
-        print(avg_score)
-        episode_snapshot += 100
-
+    df = df.append({"episode_count":agent.episode_count, "frame_count":agent.frame_count,
+                    "avg_score":avg_score, "interval_lower":confidence_interval[0],
+                    "interval_upper":confidence_interval[1]}, ignore_index=True)
     df.to_csv("q_learning/scores.csv", encoding='utf-8', index=False)
 
 
@@ -316,8 +312,9 @@ def play(nb_episodes):
             score = 0
 
 
-# train_agent()
+train_agent()
 
-score_agent()
 
-play(10)
+# score_agent()
+
+# play(10)
