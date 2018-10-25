@@ -66,7 +66,6 @@ def plot_expected_return(data):
     plt.show()
 
 def plot_states_seen(data):
-    # TODO the pivot uses averages of seen, need to sum
     df = data.groupby(["y_difference", "next_pipe_dist_to_player"]).agg({"count_seen": np.sum})
     df = df.pivot_table(index="y_difference", columns="next_pipe_dist_to_player", values="count_seen")
 

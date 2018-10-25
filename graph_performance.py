@@ -20,7 +20,7 @@ while True:
     plt.title("{}\nAverage score from 50 games after training on n frames".format(agent_type.replace("_", " ")))
     
     plt.draw()
-    plt.pause(20)
+    plt.pause(10)
     plt.clf()
 
 

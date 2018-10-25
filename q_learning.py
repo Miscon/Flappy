@@ -55,8 +55,6 @@ class FlappyAgent:
             subsequent steps in the same episode. That is, s1 in the second call will be s2
             from the first call.
             """
-        # when we learn with on policy monte carlo we need the whole episode and then we can update
-        # 1. remember these statetransitions = episode.append((s1, a, r))
 
         s1 = self.map_state(s1)
         s2 = self.map_state(s2)
@@ -277,7 +275,7 @@ def score_agent(agent):
     df.to_csv("q_learning/scores.csv", encoding='utf-8', index=False)
 
 
-def play(nb_episodes):
+def play():
     agent = FlappyAgent()
     
     with open("q_learning/newest.pkl", "rb") as f:
@@ -285,7 +283,7 @@ def play(nb_episodes):
         print("Running snapshot {}".format(agent.episode_count))
     
 
-    reward_values = agent.reward_values()
+    reward_values = {"positive": 1.0, "negative": 0.0, "tick": 0.0, "loss": 0.0, "win": 0.0}
 
     env = PLE(FlappyBird(), fps=30, display_screen=True, force_fps=False, rng=None, reward_values = reward_values)
     env.init()
@@ -312,9 +310,9 @@ def play(nb_episodes):
             score = 0
 
 
-train_agent()
+# train_agent()
 
 
 # score_agent()
 
-# play(10)
+play()
