@@ -5,23 +5,32 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+step = int((203+230)/15) + 1
+print(step)
+bins = np.arange(-202, 230, step)
+
+binone = np.digitize([50], bins)
+print(type(binone[0]))
 
 
-def plot(i, ax):
-    y = np.random.random()
-    ax.scatter(i, y)
 
 
-f, ((ax1, ax2),(ax3, ax4)) = plt.subplots(2, 2, figsize=(8, 6))
 
-for i in range(100):
-    ax1.cla()
-    plot(i, ax1)
-    plot(i, ax2)
+# def plot(i, ax):
+#     y = np.random.random()
+#     ax.scatter(i, y)
 
-    plt.pause(0.00000001)
-    import time
-    time.sleep(1)
+
+# f, ((ax1, ax2),(ax3, ax4)) = plt.subplots(2, 2, figsize=(8, 6))
+
+# for i in range(100):
+#     ax1.cla()
+#     plot(i, ax1)
+#     plot(i, ax2)
+
+#     plt.pause(0.00000001)
+#     import time
+#     time.sleep(1)
 
 
 

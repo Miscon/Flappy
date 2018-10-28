@@ -10,8 +10,7 @@ import numpy as np
 import scipy.stats as st
 import sys
 
-
-class QLearning(FlappyAgent):
+class Simple(FlappyAgent):
     def __init__(self, name):
         FlappyAgent.__init__(self, name)
   
@@ -56,6 +55,36 @@ class QLearning(FlappyAgent):
             self.episode_count += 1
 
 
+    def get_argmax_a(self, state):
+        G0 = self.Q.get((state, 0))
+        G1 = self.Q.get((state, 1))
+
+        if G0 is None:
+            G0 = self.initial_return_value
+        if G1 is None:
+            G1 = self.initial_return_value
+
+        if G0 == G1:
+            return self.get_if_else_action(state)
+        elif G0 > G1:
+            return 0
+        else:
+            return 1
+
+
+    def get_if_else_action(self, state):
+
+        player_y = state[0]
+        pipe_center_y = state[3] + 2
+        
+        action = 0
+        
+        difference = player_y - pipe_center_y
+        if difference < 0:
+            action = 1
+
+        return action
+
     def learn_from_observation(self, s1, a, r, s2):        
         
         # Get state values
@@ -72,8 +101,8 @@ class QLearning(FlappyAgent):
 
 
 
-name = "q_learning"
-agent = QLearning(name)
+name = "simple"
+agent = Simple(name)
 
 try:
     with open("{}/newest.pkl".format(name), "rb") as f:

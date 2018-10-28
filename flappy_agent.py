@@ -23,7 +23,7 @@ class FlappyAgent:
         self.lr = 0.1 # learning rate
         self.e = 0.1 # epsilon / exploration
         self.gamma = 1 # discount
-
+ 
         # For graphs
         self.s_a_counts = {}
         self.episode_count = 0
@@ -131,7 +131,7 @@ class FlappyAgent:
         return action
 
 
-    def draw_plots(self):
+    def draw_plots(self, once=False):
 
         f, ((ax1, ax2),(ax3, ax4)) = plt.subplots(2, 2, figsize=(8, 6))
         while True:
@@ -163,11 +163,14 @@ class FlappyAgent:
                 self.plot_expected_returns(ax3, df)
                 self.plot_states_seen(ax4, df)
                 
-
-                plt.pause(5)
+                if once:
+                    plt.show()
+                    break
+                else:
+                    plt.pause(5)
             except:
                 pass
-
+            
 
     def plot_learning_curve(self, ax):
         
@@ -213,8 +216,10 @@ class FlappyAgent:
             self.train()
         elif arg == "play":
             self.play()
+        elif arg == "plot":
+            self.draw_plots(True)
         else:
-            print("Invalid argument, use 'train' or 'play'")
+            print("Invalid argument, use 'train', 'play' or 'plot'")
 
 
     def train(self):
@@ -265,8 +270,6 @@ class FlappyAgent:
                     pickle.dump((self), f, pickle.HIGHEST_PROTOCOL)
 
                 print("==========================")
-
-                
 
 
     def score(self):
