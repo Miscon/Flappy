@@ -234,9 +234,7 @@ class FlappyAgent:
         env.init()
 
         score = 0
-        rewards = []
-        nb_episodes = 10000 - self.episode_count
-        while nb_episodes > 0 and self.frame_count <= 1000000:
+        while self.frame_count <= 1000000:
             # pick an action
             state1 = env.game.getGameState()
             action = self.training_policy(state1)
@@ -250,31 +248,25 @@ class FlappyAgent:
             end = env.game_over() or score >= 100 # Stop after reaching 100 pipes
             self.observe(state1, action, reward, state2, end)
 
-            score += reward
-
             # reset the environment if the game is over
             if end:
                 env.reset_game()
-                nb_episodes -= 1
-
-                rewards.append(score)
-                if nb_episodes % 100 == 0:
-                    print("==========================")
-                    
-                    print("episodes done: {}".format(self.episode_count))
-                    print("episodes left: {}".format(nb_episodes))
-                    print("frames: {}".format(self.frame_count))
-
-                    self.score()
-
-                    with open("{}/{}.pkl".format(self.name, self.episode_count), "wb") as f:
-                        pickle.dump((self), f, pickle.HIGHEST_PROTOCOL)
-                    with open("{}/newest.pkl".format(self.name), "wb") as f:
-                        pickle.dump((self), f, pickle.HIGHEST_PROTOCOL)
-
-                    print("==========================")
-
                 score = 0
+
+            if self.frame_count % 20000 == 0:
+                print("==========================")
+                
+                print("episodes done: {}".format(self.episode_count))
+                print("frames done: {}".format(self.frame_count))
+
+                self.score()
+
+                with open("{}/newest.pkl".format(self.name), "wb") as f:
+                    pickle.dump((self), f, pickle.HIGHEST_PROTOCOL)
+
+                print("==========================")
+
+                
 
 
     def score(self):
