@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import scipy.stats as st
 import os.path
+import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 import threading
@@ -17,12 +18,18 @@ class FlappyAgent:
     def __init__(self, name):
         self.name = name
         self.Q = {}
+        self.initial_return_value = 0
+
+        self.lr = 0.1 # learning rate
+        self.e = 0.1 # epsilon / exploration
+        self.gamma = 1 # discount
 
         # For graphs
         self.s_a_counts = {}
         self.episode_count = 0
         self.frame_count = 0
     
+
     def reward_values(self):
         """ returns the reward values used for training
         
@@ -33,9 +40,10 @@ class FlappyAgent:
         """
         return {"positive": 1.0, "tick": 0.0, "loss": -5.0}
     
+
     def map_state(self, state):
-        print("No implementation for map_state()")
         return state
+
 
     def observe(self, s1, a, r, s2, end):
         """ this function is called during training on each step of the game where
@@ -46,40 +54,40 @@ class FlappyAgent:
             subsequent steps in the same episode. That is, s1 in the second call will be s2
             from the first call.
             """
-        print("No implementation for observe()")
-        return
+        pass
+
 
     def get_max_a(self, state):
         G0 = self.Q.get((state, 0))
         G1 = self.Q.get((state, 1))
 
-        initial_G = 0
-
         if G0 is None:
-            G0 = initial_G
+            G0 = self.initial_return_value
         if G1 is None:
-            G1 = initial_G
+            G1 = self.initial_return_value
 
         if G0 > G1:
             return G0
         else:
             return G1
 
+
     def get_argmax_a(self, state):
         G0 = self.Q.get((state, 0))
         G1 = self.Q.get((state, 1))
 
-        initial_G = 0
-
         if G0 is None:
-            G0 = initial_G
+            G0 = self.initial_return_value
         if G1 is None:
-            G1 = initial_G
+            G1 = self.initial_return_value
 
-        if G0 > G1:
+        if G0 == G1:
+            return random.randint(0, 1)
+        elif G0 > G1:
             return 0
         else:
             return 1
+
 
     def update_counts(self, sa):
         if sa in self.s_a_counts:
@@ -88,14 +96,26 @@ class FlappyAgent:
             self.s_a_counts[sa] = 1
         self.frame_count += 1
        
+
     def training_policy(self, state):
         """ Returns the index of the action that should be done in state while training the agent.
             Possible actions in Flappy Bird are 0 (flap the wing) or 1 (do nothing).
 
             training_policy is called once per frame in the game while training
         """
-        print("No implementation for training_policy()")
-        return self.get_argmax_a(state)
+
+        state = self.map_state(state)
+
+        greedy = np.random.choice([False, True], p=[self.e, 1-self.e])
+
+        action = 0
+        if greedy:
+            action = self.get_argmax_a(state)
+        else:
+            action = random.randint(0, 1)
+
+        return action
+
 
     def policy(self, state):
         """ Returns the index of the action that should be done in state when training is completed.
@@ -104,8 +124,12 @@ class FlappyAgent:
             policy is called once per frame in the game (30 times per second in real-time)
             and needs to be sufficiently fast to not slow down the game.
         """
-        print("No implementation for policy()")
-        return self.get_argmax_a(state)
+
+        state = self.map_state(state)
+        action = self.get_argmax_a(state)
+
+        return action
+
 
     def draw_plots(self):
 
@@ -156,6 +180,7 @@ class FlappyAgent:
         ax.set_ylabel("Average score")
         ax.set_title("{}\nAverage score from 10 games".format(self.name.replace("_", " ")))
 
+
     def plot_actions(self, ax, df):
         ax.pcolor(df["action"])
         ax.set_title("Best action")
@@ -163,6 +188,7 @@ class FlappyAgent:
         # Invert axes
         ax.set_xlim(ax.get_xlim()[::-1])
         ax.set_ylim(ax.get_ylim()[::-1])
+
 
     def plot_expected_returns(self, ax, df):
         ax.pcolor(df["return"])
@@ -172,6 +198,7 @@ class FlappyAgent:
         ax.set_xlim(ax.get_xlim()[::-1])
         ax.set_ylim(ax.get_ylim()[::-1])
 
+
     def plot_states_seen(self, ax, df):
         ax.pcolor(df["count_seen"])
         ax.set_title("State count seen")
@@ -180,10 +207,24 @@ class FlappyAgent:
         ax.set_xlim(ax.get_xlim()[::-1])
         ax.set_ylim(ax.get_ylim()[::-1])
 
+
+    def run(self, arg):
+        if arg == "train":
+            self.train()
+        elif arg == "play":
+            self.play()
+        else:
+            print("Invalid argument, use 'train' or 'play'")
+
+
     def train(self):
         """ Runs nb_episodes episodes of the game with agent picking the moves.
             An episode of FlappyBird ends with the bird crashing into a pipe or going off screen.
         """
+
+        if not os.path.exists(self.name):
+            os.mkdir(self.name)
+
         t = threading.Thread(target=self.draw_plots)
         t.daemon = True
         t.start()
@@ -235,6 +276,7 @@ class FlappyAgent:
 
                 score = 0
 
+
     def score(self):
         reward_values = {"positive": 1.0, "negative": 0.0, "tick": 0.0, "loss": 0.0, "win": 0.0}
 
@@ -279,6 +321,7 @@ class FlappyAgent:
 
 
     def play(self):
+        print("Playing {} agent after training for {} episodes or {} frames".format(self.name, self.episode_count, self.frame_count))
         reward_values = {"positive": 1.0, "negative": 0.0, "tick": 0.0, "loss": 0.0, "win": 0.0}
 
         env = PLE(FlappyBird(), fps=30, display_screen=True, force_fps=False, rng=None, reward_values=reward_values)
