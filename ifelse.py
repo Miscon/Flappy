@@ -65,7 +65,7 @@ class FlappyAgent:
         #         action = 1
         
         difference = player_y - pipe_center_y
-        if distance_to_pipe < 15:
+        if distance_to_pipe < 10:
             # print(distance_to_next_pipe)
             difference = player_y - next_pipe_center_y
         if difference < 0:
@@ -121,8 +121,13 @@ def play():
         if state["player_y"] > state["next_pipe_top_y"] - 6 and state["player_y"] < state["next_pipe_top_y"] + 6:
 
             import time
-            print(state["player_y"])
-            print(state["next_pipe_top_y"])
+            # print(state["player_y"])
+            # print(state["next_pipe_top_y"])
+            # time.sleep(3)
+
+        if state["next_pipe_dist_to_player"] < 75 and state["next_pipe_dist_to_player"] > 70:
+
+            import time
             time.sleep(3)
 
         # reset the environment if the game is over

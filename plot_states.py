@@ -8,7 +8,7 @@ import seaborn as sns
 import sys
 
 
-class FlappyAgent:
+class OnPolicyMonteCarlo():
     def __init__(self):
         self.Q = {}
         self.greedy_policy = {}
@@ -37,9 +37,10 @@ class FlappyAgent:
                 return 1
 
 def plot_actions(data):
-    
+    print(data.shape)
     df = data.pivot_table(index="y_difference", columns="next_pipe_dist_to_player", values="action")
 
+    print(df.shape)
     fig = plt.figure()
     ax = fig.gca()
     ax = sns.heatmap(df, annot=False, cbar=True)
@@ -82,7 +83,7 @@ def plot_states_seen(data):
 
 
 agent_type = sys.argv[1]
-agent = FlappyAgent()
+agent = OnPolicyMonteCarlo()
 
 with open("{}/newest.pkl".format(agent_type), "rb") as f:
     agent = pickle.load(f)
