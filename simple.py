@@ -75,7 +75,7 @@ class Simple(FlappyAgent):
     def get_if_else_action(self, state):
 
         player_y = state[0]
-        pipe_center_y = state[3] + 2
+        pipe_center_y = state[3] + 3
         
         action = 0
         

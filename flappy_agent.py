@@ -114,6 +114,7 @@ class FlappyAgent:
         else:
             action = random.randint(0, 1)
 
+        
         return action
 
 
@@ -127,7 +128,6 @@ class FlappyAgent:
 
         state = self.map_state(state)
         action = self.get_argmax_a(state)
-
         return action
 
 
@@ -216,6 +216,8 @@ class FlappyAgent:
             self.train()
         elif arg == "play":
             self.play()
+        elif arg == "score":
+            self.score(False, 10)
         elif arg == "plot":
             self.draw_plots(True)
         else:
@@ -272,15 +274,15 @@ class FlappyAgent:
                 print("==========================")
 
 
-    def score(self):
+    def score(self, save=True, nb_episodes=10):
         reward_values = {"positive": 1.0, "negative": 0.0, "tick": 0.0, "loss": 0.0, "win": 0.0}
 
         env = PLE(FlappyBird(), fps=30, display_screen=False, force_fps=True, rng=None, reward_values=reward_values)
         env.init()
 
+        total_episodes = nb_episodes
         score = 0
         scores = []
-        nb_episodes = 10
         while nb_episodes > 0:
             # pick an action
             state = env.game.getGameState()
@@ -303,16 +305,29 @@ class FlappyAgent:
         if np.isnan(confidence_interval[0]):
             confidence_interval = (avg_score, avg_score)
         
-        score_file = "{}/scores.csv".format(self.name)
+        print("Games played: {}".format(total_episodes))
+        print("Average score: {}".format(avg_score))
+        print("95 confidence interval: {}".format(confidence_interval))
 
-        # If file doesn't exist, add the header
-        if not os.path.isfile(score_file):
+        if save:
+            score_file = "{}/scores.csv".format(self.name)
+            # If file doesn't exist, add the header
+            if not os.path.isfile(score_file):
+                with open(score_file, "ab") as f:
+                    f.write("avg_score,episode_count,frame_count,interval_lower,interval_upper\n")
+
+            # Append scores to the file
             with open(score_file, "ab") as f:
-                f.write("avg_score,episode_count,frame_count,interval_lower,interval_upper\n")
+                f.write("{},{},{},{},{}\n".format(avg_score, self.episode_count, self.frame_count, confidence_interval[0], confidence_interval[1]))
 
-        # Append scores to the file
-        with open(score_file, "ab") as f:
-            f.write("{},{},{},{},{}\n".format(avg_score, self.episode_count, self.frame_count, confidence_interval[0], confidence_interval[1]))
+            count = 0
+            for score in scores:
+                if score >= 50:
+                    count += 1
+            if count >= len(scores) * 0.9:
+                print("*** over 50 score in {} frames ***".format(self.frame_count))
+                with open("{}/50_count.txt".format(self.name), "ab") as f:
+                    f.write("over 50 score in {} frames".format(self.frame_count))
 
 
     def play(self):

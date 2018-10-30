@@ -20,31 +20,25 @@ class IfElse(FlappyAgent):
 
     def get_argmax_a(self, state):
         # Possible actions in Flappy Bird are 0 (flap the wing) or 1 (do nothing).
-        pipe_center_y = state["next_pipe_top_y"] + 45
-        next_pipe_center_y = state["next_next_pipe_top_y"] + 45
+        pipe_center_y = state["next_pipe_top_y"] + 55
+        next_pipe_center_y = state["next_next_pipe_top_y"] + 55
         player_y = state["player_y"]
         distance_to_pipe = state["next_pipe_dist_to_player"]
-        distance_to_next_pipe = state["next_pipe_dist_to_player"]
         player_vel = state["player_vel"]
         
         action = 0
         
-        
-        # when distance is less than 20 the bird has
-        # actually moved past the current pipe
-        # so make the next pipe is the current pipe
-        if distance_to_pipe < 10:
-            distance_to_pipe = distance_to_next_pipe
-            pipe_center_y = next_pipe_center_y
+        difference = player_y - pipe_center_y
 
-        # get y difference between bird and pipe opening
-        difference = player_y - pipe_center_y 
+        # next pipe is the current pipe
+        if distance_to_pipe < 10:
+            difference = player_y - next_pipe_center_y
 
         # align to the current pipe
         if difference < 0:
             action = 1
  
-        if distance_to_pipe < 100 and distance_to_pipe >= 0 or difference < 30: # if inside pipe
+        if distance_to_pipe < 100 and distance_to_pipe > 0: # if inside pipe
            # if self.inside_jump:
            #     action = 0
            #     self.inside_jump = False
