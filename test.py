@@ -4,17 +4,45 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-
-step = int((203+230)/15) + 1
-print(step)
-bins = np.arange(-202, 230, step)
-
-binone = np.digitize([50], bins)
-print(type(binone[0]))
+import math
 
 
+# step = math.floor(float(100)/3)
+# print(step)
+# bins = np.concatenate(([-300], np.arange(1, 101, step), [300]), axis=0)
+# print(bins)
+# values = np.digitize([-240, 0, 240], bins)
+# print(values)
+
+# diff = 157  # min and max possible values
+# step = math.floor(float(diff)/2) # split in 4 bins
+# bins = np.arange(-diff, diff, step)
+# print(step)
+# print(bins)
+# step = int((203+230)/15) + 1
+# print(step)
+# bins = np.arange(-202, 230, step)
+
+# binone = np.digitize([50], bins)
+# print(type(binone[0]))
+
+# bins = [x-1 for x in np.geomspace(1, 66, num=4)]
+# print(bins)
 
 
+# print(np.linspace(13, 76, 11))
+
+
+# print([a-9 for a in np.geomspace(1, 20, 5)])
+
+
+
+print(np.linspace(13, 76, 4))
+print([b-1 for b in np.geomspace(1, 66, num=x))
+
+
+# value = np.digitize([1, 2, 4, 5], [2, 4, 6])
+# print(value)
 
 # def plot(i, ax):
 #     y = np.random.random()

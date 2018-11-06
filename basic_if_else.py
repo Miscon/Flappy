@@ -10,19 +10,25 @@ import numpy as np
 import scipy.stats as st
 import sys
 import matplotlib.pyplot as plt
+import math
 
 class BasicIfElse(FlappyAgent):
     def __init__(self, name):
         FlappyAgent.__init__(self, name)
+        self.count = 0
+        self.split = 5
 
 
     def get_argmax_a(self, state):
-
-        pipe_center_y = state["next_pipe_top_y"] + 55
-        next_pipe_center_y = state["next_next_pipe_top_y"] + 55
+        pipe_center_y = state["next_pipe_top_y"] + 70
+        next_pipe_center_y = state["next_next_pipe_top_y"] + 70
         player_y = state["player_y"]
         distance_to_pipe = state["next_pipe_dist_to_player"]
-        
+
+        player_y = state["player_y"]
+
+
+
         action = 0
         
         if distance_to_pipe < 10:

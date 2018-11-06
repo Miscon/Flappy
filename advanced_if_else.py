@@ -10,13 +10,18 @@ import numpy as np
 import scipy.stats as st
 import sys
 import matplotlib.pyplot as plt
+import math
 
 class AdvancedIfElse(FlappyAgent):
     def __init__(self, name):
         FlappyAgent.__init__(self, name)
+        self.count = 0
+        self.split = 5
   
 
     def get_argmax_a(self, state):
+
+
         # Possible actions in Flappy Bird are 0 (flap the wing) or 1 (do nothing).
         player_y = state["player_y"]
         player_vel = state["player_vel"]
@@ -41,12 +46,12 @@ class AdvancedIfElse(FlappyAgent):
         # if inside the pipe, do double jumps
         if distance_to_pipe < 100:
             # if player jump last action
-            if player_vel == -8:
+            if player_vel < 0:
                 action = 0
         # else do jump, noop, jump to jump higher
         else:
             # if last action was jump, don't jump right away
-            if player_vel == -8:
+            if player_vel < 0:
                 action = 1
 
 

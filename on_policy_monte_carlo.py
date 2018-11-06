@@ -75,7 +75,7 @@ name = "on_policy_monte_carlo"
 agent = OnPolicyMonteCarlo(name)
 
 try:
-    with open("{}/newest.pkl".format(name), "rb") as f:
+    with open("{}/agent.pkl".format(name), "rb") as f:
         agent = pickle.load(f)
         print("Running snapshot {}".format(agent.episode_count))
 except:
