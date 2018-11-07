@@ -18,7 +18,6 @@ class FlappyAgent:
     def __init__(self, name):
         self.name = name
         self.Q = {}
-        self.initial_return_value = 0
 
         self.lr = 0.1 # learning rate
         self.e = 0.1 # epsilon / exploration
@@ -62,9 +61,9 @@ class FlappyAgent:
         G1 = self.Q.get((state, 1))
 
         if G0 is None:
-            G0 = self.initial_return_value
+            G0 = self.get_initial_return_value(state, 0)
         if G1 is None:
-            G1 = self.initial_return_value
+            G1 = self.get_initial_return_value(state, 1)
 
         if G0 > G1:
             return G0
@@ -77,9 +76,9 @@ class FlappyAgent:
         G1 = self.Q.get((state, 1))
 
         if G0 is None:
-            G0 = self.initial_return_value
+            G0 = self.get_initial_return_value(state, 0)
         if G1 is None:
-            G1 = self.initial_return_value
+            G1 = self.get_initial_return_value(state, 1)
 
         if G0 == G1:
             return random.randint(0, 1)
@@ -89,11 +88,15 @@ class FlappyAgent:
             return 1
 
 
-    def update_counts(self, sa):
-        if sa in self.s_a_counts:
-            self.s_a_counts[sa] += 1
+    def get_initial_return_value(self, state, action):
+        return 0
+
+
+    def update_counts(self, s_a):
+        if s_a in self.s_a_counts:
+            self.s_a_counts[s_a] += 1
         else:
-            self.s_a_counts[sa] = 1
+            self.s_a_counts[s_a] = 1
         self.frame_count += 1
        
 
@@ -134,26 +137,11 @@ class FlappyAgent:
     def draw_plots(self, once=False):
 
         f, ((ax1, ax2),(ax3, ax4)) = plt.subplots(2, 2, figsize=(8, 6))
+        plt.subplots_adjust(wspace=0.5, hspace=0.5)
         while True:
             try:
-                d = {}
-                i = 0
-                for sa, G in self.Q.items():
-                    
-                    state = sa[0]
-                    d[i] = {"player_y":state[0],
-                            "player_vel":state[1],
-                            "next_pipe_dist_to_player":state[2],
-                            "next_pipe_top_y":state[3],
-                            "y_difference":state[0] - state[3],
-                            "action":self.get_argmax_a(state),
-                            "return":G,
-                            "count_seen":self.s_a_counts[sa]}
-                    i += 1
-
-                df = pd.DataFrame.from_dict(d, "index")
-                df = df.pivot_table(index="y_difference", columns="next_pipe_dist_to_player", values=["action", "return", "count_seen"])
-                
+                df = self.make_df()
+            
                 ax1.cla()
                 ax2.cla()
                 ax3.cla()
@@ -170,18 +158,40 @@ class FlappyAgent:
                     plt.pause(5)
             except:
                 pass
+
+
+    def make_df(self):
+        d = {}
+        i = 0
+        for sa, G in self.Q.items():
             
+            state = sa[0]
+            action = sa[1]
+            d[i] = self.state_to_dict(state, action, G)
+            i += 1
+
+        df = pd.DataFrame.from_dict(d, "index")
+        return df.pivot_table(index="y_difference", columns="next_pipe_dist_to_player", values=["action", "return", "count_seen"])
+
+
+    def state_to_dict(self, state, action, G):
+        return {"next_pipe_dist_to_player":state[2],
+                "y_difference":state[0] - state[3],
+                "action":self.get_argmax_a(state),
+                "return":G,
+                "count_seen":self.s_a_counts[(state, action)]}
+
 
     def plot_learning_curve(self, ax):
         
         df = pd.read_csv("{}/scores.csv".format(self.name))
 
         ax.plot(df["frame_count"], df["avg_score"])
-        ax.fill_between(df["frame_count"], df["interval_upper"], df["interval_lower"], alpha=0.5)
+        ax.fill_between(df["frame_count"], df["interval_upper"], df["interval_lower"], alpha=0.3)
 
+        ax.set_title("Learning curve")
         ax.set_xlabel("Number of frames")
         ax.set_ylabel("Average score")
-        ax.set_title("{}\nAverage score from 10 games".format(self.name.replace("_", " ")))
 
 
     def plot_actions(self, ax, df):
@@ -192,6 +202,9 @@ class FlappyAgent:
         ax.set_xlim(ax.get_xlim()[::-1])
         ax.set_ylim(ax.get_ylim()[::-1])
 
+        ax.set_xlabel("Agent pipe y difference")
+        ax.set_ylabel("Agent distance to pipe")
+
 
     def plot_expected_returns(self, ax, df):
         ax.pcolor(df["return"])
@@ -201,6 +214,9 @@ class FlappyAgent:
         ax.set_xlim(ax.get_xlim()[::-1])
         ax.set_ylim(ax.get_ylim()[::-1])
 
+        ax.set_xlabel("Agent pipe y difference")
+        ax.set_ylabel("Agent distance to pipe")
+
 
     def plot_states_seen(self, ax, df):
         ax.pcolor(df["count_seen"])
@@ -209,6 +225,9 @@ class FlappyAgent:
         # Invert axes
         ax.set_xlim(ax.get_xlim()[::-1])
         ax.set_ylim(ax.get_ylim()[::-1])
+
+        ax.set_xlabel("Agent pipe y difference")
+        ax.set_ylabel("Agent distance to pipe")
 
 
     def run(self, arg):
@@ -260,7 +279,7 @@ class FlappyAgent:
                 env.reset_game()
                 score = 0
 
-            if self.frame_count % 1000 == 0:
+            if self.frame_count % 20000 == 0:
                 print("==========================")
                 
                 print("episodes done: {}".format(self.episode_count))
@@ -272,79 +291,6 @@ class FlappyAgent:
                     pickle.dump((self), f, pickle.HIGHEST_PROTOCOL)
 
                 print("==========================")
-
-
-    # TODO delete this
-    # def pos_check(self, env, state):
-    #     import pygame
-    #     from pygame.locals import *
-    #     # self.died_pos(state1, state2)
-
-    #     player_y = state["player_y"]
-    #     player_vel = state["player_vel"]
-    #     pipe_top_y = state["next_pipe_top_y"]
-    #     next_pipe_top_y = state["next_next_pipe_top_y"]
-    #     distance_to_pipe = state["next_pipe_dist_to_player"]
-    #     next_distance_to_pipe = state["next_next_pipe_dist_to_player"]
-
-    #     player_pipe_difference = player_y - pipe_top_y
-    #     pipe_next_pipe_difference = pipe_top_y - next_pipe_top_y
-        
-    #     if distance_to_pipe > 30 and distance_to_pipe < 60:
-    #         pipe_group = env.game.pipe_group
-    #         hit = pygame.sprite.spritecollide(env.game.player, pipe_group, False)
-    #         for h in hit:    #do check to see if its within the gap.
-    #             top_pipe_check = ((env.game.player.pos_y - env.game.player.height/2) <= h.gap_start) 
-    #             bot_pipe_check = ((env.game.player.pos_y + env.game.player.height) > h.gap_start+env.game.pipe_gap)
-
-    #             # if top_pipe_check:
-    #             #     print("top")
-    #             #     print("player: {}".format(env.game.player.pos_y - env.game.player.height/2))
-    #             #     print("player: {}".format(env.game.player.pos_y))
-    #             #     print("player: {}".format(player_y))
-    #             #     print("pipe: {}".format(h.gap_start))
-    #             #     print("pipe: {}".format(h.gap_start - pipe_top_y))
-    #             #     print("==========================")
-
-    #             if bot_pipe_check:
-    #                 print("bottom")
-    #                 print("player: {}".format(env.game.player.pos_y + env.game.player.height))
-    #                 print("player: {}".format(env.game.player.pos_y))
-    #                 print("player: {}".format(player_y))
-    #                 print("pipe: {}".format(h.gap_start+env.game.pipe_gap))
-    #                 print("pipe: {}".format(h.gap_start+env.game.pipe_gap  - state["next_pipe_bottom_y"]))
-    #                 print("==========================")
-
-    # def pipe_check(self, env, state):
-    #     import pygame
-    #     from pygame.locals import *
-    #     # self.died_pos(state1, state2)
-
-    #     player_y = state["player_y"]
-    #     player_vel = state["player_vel"]
-    #     pipe_top_y = state["next_pipe_top_y"]
-    #     next_pipe_top_y = state["next_next_pipe_top_y"]
-    #     distance_to_pipe = state["next_pipe_dist_to_player"]
-    #     next_distance_to_pipe = state["next_next_pipe_dist_to_player"]
-
-    #     pipe_group = env.game.pipe_group
-    #     # hit = pygame.sprite.spritecollide(env.game.player, pipe_group, False)
-    #     # for h in hit:    #do check to see if its within the gap.
-    #         # print(h.rect)
-
-    #     # for pipe in pipe_group:
-    #     #     print(pipe.rect)
-    #     if player_y < pipe_top_y or player_y > state["next_pipe_bottom_y"]:
-    #         pipe_group = env.game.pipe_group
-    #         hit = pygame.sprite.spritecollide(env.game.player, pipe_group, False)
-    #         for h in hit:    #do check to see if its within the gap.
-    #             top_pipe_check = ((env.game.player.pos_y - env.game.player.height/2) <= h.gap_start) 
-    #             bot_pipe_check = ((env.game.player.pos_y + env.game.player.height) > h.gap_start+env.game.pipe_gap)
-
-    #             if top_pipe_check or bot_pipe_check:
-    #                 print(distance_to_pipe)
-
-
 
 
     def score(self, training=True, nb_episodes=10):
@@ -367,7 +313,7 @@ class FlappyAgent:
             score += reward
 
             # reset the environment if the game is over
-            if env.game_over() or score >= 50:
+            if env.game_over() or score >= 100:
                 scores.append(score)
                 env.reset_game()
                 nb_episodes -= 1
@@ -413,7 +359,7 @@ class FlappyAgent:
         print("Playing {} agent after training for {} episodes or {} frames".format(self.name, self.episode_count, self.frame_count))
         reward_values = {"positive": 1.0, "negative": 0.0, "tick": 0.0, "loss": 0.0, "win": 0.0}
 
-        env = PLE(FlappyBird(), fps=30, display_screen=True, force_fps=True, rng=None, reward_values=reward_values)
+        env = PLE(FlappyBird(), fps=30, display_screen=True, force_fps=False, rng=None, reward_values=reward_values)
         env.init()
         
         score = 0

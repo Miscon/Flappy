@@ -20,25 +20,11 @@ class LinearApproximation(FlappyAgent):
   
     
     def map_state(self, state):
-        """ 
-            player_y
-            next_pipe_top_y
-            next_pipe_dist_to_player
-            player_vel
-        """
 
         return (state['player_y'], state['player_vel'], state['next_pipe_dist_to_player'], state['next_pipe_top_y'])
 
     
     def observe(self, s1, a, r, s2, end):
-        """ this function is called during training on each step of the game where
-            the state transition is going from state s1 with action a to state s2 and
-            yields the reward r. If s2 is a terminal state, end==True, otherwise end==False.
-            
-            Unless a terminal state was reached, two subsequent calls to observe will be for
-            subsequent steps in the same episode. That is, s1 in the second call will be s2
-            from the first call.
-            """
 
         s1 = self.map_state(s1)
         self.episode.append((s1, a, r))
@@ -88,16 +74,16 @@ class LinearApproximation(FlappyAgent):
                 pass
 
 
-    def plot_learning_curve(self, ax):
+    # def plot_learning_curve(self, ax):
         
-        df = pd.read_csv("{}/scores.csv".format(self.name))
+    #     df = pd.read_csv("{}/scores.csv".format(self.name))
 
-        ax.plot(df["frame_count"], df["avg_score"])
-        ax.fill_between(df["frame_count"], df["interval_upper"], df["interval_lower"], alpha=0.5)
+    #     ax.plot(df["frame_count"], df["avg_score"])
+    #     ax.fill_between(df["frame_count"], df["interval_upper"], df["interval_lower"], alpha=0.5)
 
-        ax.set_xlabel("Number of frames")
-        ax.set_ylabel("Average score")
-        ax.set_title("{}\nAverage score from 10 games".format(self.name.replace("_", " ")))
+    #     ax.set_xlabel("Number of frames")
+    #     ax.set_ylabel("Average score")
+    #     ax.set_title("{}\nAverage score from 10 games".format(self.name.replace("_", " ")))
 
 
 name = "linear_approximation"
@@ -108,6 +94,9 @@ try:
         agent = pickle.load(f)
         print("Running snapshot {}".format(agent.episode_count))
 except:
+    if sys.argv[1] == "plot":
+        print("No data available to plot")
+        quit()
     print("Starting new {} agent".format(name))
 
-agent.run(sys.argv[1]) # Use 'train' or 'play'
+agent.run(sys.argv[1]) # Use 'train', 'play', 'score' or 'plot'

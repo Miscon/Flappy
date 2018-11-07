@@ -19,7 +19,7 @@ while True:
         except:
             break
 
-    plt.legend(legend, loc="upper left")
+    plt.legend(legend, loc="upper right")
     plt.xlabel("Number of frames")
     plt.ylabel("Average score")
     plt.title("Average score from 10 games")

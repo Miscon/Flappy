@@ -35,10 +35,10 @@ import math
 
 # print([a-9 for a in np.geomspace(1, 20, 5)])
 
+print(np.linspace(0, 512, 15))
 
-
-print(np.linspace(13, 76, 4))
-print([b-1 for b in np.geomspace(1, 66, num=x))
+# print(np.linspace(13, 76, 4))
+# print([b-1 for b in np.geomspace(1, 66, num=x))
 
 
 # value = np.digitize([1, 2, 4, 5], [2, 4, 6])

@@ -14,34 +14,24 @@ import sys
 class QLearning(FlappyAgent):
     def __init__(self, name):
         FlappyAgent.__init__(self, name)
+
+        self.player_y_bins = np.linspace(0, 512, 15)
+        self.player_vel_bins = np.linspace(-8, 10, 15)
+        self.next_pipe_dist_bins = np.linspace(0, 288, 15)
+        self.next_pipe_top_bins = np.linspace(0, 512, 15)
   
     
     def map_state(self, state):
-        """ We are not using the entire game state as our state as we 
-            just want the following values but discretized to at max 15 values
-            player_y
-            next_pipe_top_y
-            next_pipe_dist_to_player
-            player_vel
-        """
 
-        player_y = int(state['player_y'] / (513.0/15))
-        player_vel = int(state['player_vel'] / (20.0/15))
-        next_pipe_dist_to_player = int(state['next_pipe_dist_to_player'] / (289.0/15))
-        next_pipe_top = int(state['next_pipe_top_y'] / (513.0/15))
+        player_y = np.digitize([state['player_y']], self.player_y_bins)[0]
+        player_vel = np.digitize([state['player_vel']], self.player_vel_bins)[0]
+        next_pipe_dist_to_player = np.digitize([state['next_pipe_dist_to_player']], self.next_pipe_dist_bins)[0]
+        next_pipe_top = np.digitize([state['next_pipe_top_y']], self.next_pipe_top_bins)[0]
 
         return (player_y, player_vel, next_pipe_dist_to_player, next_pipe_top)
 
     
     def observe(self, s1, a, r, s2, end):
-        """ this function is called during training on each step of the game where
-            the state transition is going from state s1 with action a to state s2 and
-            yields the reward r. If s2 is a terminal state, end==True, otherwise end==False.
-            
-            Unless a terminal state was reached, two subsequent calls to observe will be for
-            subsequent steps in the same episode. That is, s1 in the second call will be s2
-            from the first call.
-            """
 
         s1 = self.map_state(s1)
         s2 = self.map_state(s2)
@@ -61,7 +51,7 @@ class QLearning(FlappyAgent):
         # Get state values
         Qs1a = self.Q.get((s1, a))
         if Qs1a is None:
-            Qs1a = self.initial_return_value
+            Qs1a = self.get_initial_return_value(s1, a)
 
         # Calculate return
         G = r + self.gamma * self.get_max_a(s2) 
@@ -80,6 +70,9 @@ try:
         agent = pickle.load(f)
         print("Running snapshot {}".format(agent.episode_count))
 except:
+    if sys.argv[1] == "plot":
+        print("No data available to plot")
+        quit()
     print("Starting new {} agent".format(name))
 
-agent.run(sys.argv[1]) # Use 'train' or 'play'
+agent.run(sys.argv[1]) # Use 'train', 'play', 'score' or 'plot'
