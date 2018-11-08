@@ -72,4 +72,4 @@ class IfElse(FlappyAgent):
 name = "if_else"
 agent = IfElse(name)
 
-agent.run(sys.argv[1]) # Use 'train' or 'play'
+agent.run(sys.argv[1]) # Use 'train', 'play' or 'score'

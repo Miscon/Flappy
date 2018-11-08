@@ -260,7 +260,7 @@ class FlappyAgent:
         env.init()
 
         score = 0
-        while self.frame_count <= 1000000:
+        while self.frame_count <= 500000:
             # pick an action
             state1 = env.game.getGameState()
             action = self.training_policy(state1)
@@ -279,7 +279,7 @@ class FlappyAgent:
                 env.reset_game()
                 score = 0
 
-            if self.frame_count % 20000 == 0:
+            if self.frame_count % 5000 == 0:
                 print("==========================")
                 
                 print("episodes done: {}".format(self.episode_count))

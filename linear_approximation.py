@@ -61,7 +61,7 @@ class LinearApproximation(FlappyAgent):
             self.weights[a] = self.weights[a] - self.lr * (np.dot(self.weights[a], features) - G) * features
 
 
-    def draw_plots(self):
+    def draw_plots(self, once=False):
 
         f, ax = plt.subplots(1, 1, figsize=(8, 6))
         while True:
@@ -69,10 +69,13 @@ class LinearApproximation(FlappyAgent):
                 ax.cla()
                 self.plot_learning_curve(ax)                
 
-                plt.pause(5)
+                if once:
+                    plt.show()
+                    break
+                else:
+                    plt.pause(5)
             except:
                 pass
-
 
     # def plot_learning_curve(self, ax):
         
