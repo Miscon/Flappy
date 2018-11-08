@@ -77,17 +77,6 @@ class LinearApproximation(FlappyAgent):
             except:
                 pass
 
-    # def plot_learning_curve(self, ax):
-        
-    #     df = pd.read_csv("{}/scores.csv".format(self.name))
-
-    #     ax.plot(df["frame_count"], df["avg_score"])
-    #     ax.fill_between(df["frame_count"], df["interval_upper"], df["interval_lower"], alpha=0.5)
-
-    #     ax.set_xlabel("Number of frames")
-    #     ax.set_ylabel("Average score")
-    #     ax.set_title("{}\nAverage score from 10 games".format(self.name.replace("_", " ")))
-
 
 name = "linear_approximation"
 agent = LinearApproximation(name)

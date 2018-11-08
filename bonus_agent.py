@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 
 
-class BestAgent6(FlappyAgent):
+class BonusAgent(FlappyAgent):
     def __init__(self, name):
         FlappyAgent.__init__(self, name)
 
@@ -67,11 +67,8 @@ class BestAgent6(FlappyAgent):
         # Calculate return
         G = r + self.gamma * self.get_max_a(s2) 
 
-        # Calculate learning rate
-        lr = 1.0 / self.s_a_counts[(s1,a)]
-
         # Update Q table
-        self.Q[(s1, a)] = Qs1a + lr * (G - Qs1a) # update rule
+        self.Q[(s1, a)] = Qs1a + self.lr * (G - Qs1a) # update rule
 
     
     def get_initial_return_value(self, state, action):
@@ -132,14 +129,14 @@ class BestAgent6(FlappyAgent):
                 "count_seen":self.s_a_counts[(state, action)]}
 
 
-name = "best_agent_6"
+name = "bonus_agent"
 
 try:
     name += "_{}".format(sys.argv[2])
 except:
     pass
 
-agent = BestAgent6(name)
+agent = BonusAgent(name)
 
 try:
     with open("{}/agent.pkl".format(name), "rb") as f:
